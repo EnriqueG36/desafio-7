@@ -13,9 +13,14 @@ class ApiProductos{
 //Metodo para leer todos los registros de la tabla
 async getAll(){
     try{
-    const productos = await this.knex.from(this.nombreTabla).select('*');
-    console.table(this.nombreTabla);
-
+    let productos = await this.knex.from(this.nombreTabla).select('id','title','price','thumbnail');
+    //console.log(this.nombreTabla);
+    
+    //console.log("llamada a get all productos");
+    //console.log(productos);
+    //let objetoProductos = JSON.stringify(productos);   
+    //productos = JSON.parse(objetoProductos)   
+    //console.log(productos);
     return productos;
     }
     catch(error){

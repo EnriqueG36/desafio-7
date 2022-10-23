@@ -12,7 +12,9 @@ recibirá como argumento de su callback, un parametro data, que es el argumento 
 //---------------------------------
 //Llama a la plantilla de handlebars con fetch() y le pasa el arreglo de productos
 async function renderProducts(products){
-    console.log(products);
+    
+    console.log(products);                  //Recibiendo un OBJECT PROTOTYPE
+    
     const fetchHBS = await fetch("plantillaProductos.hbs");
     const textHBS = await fetchHBS.text();
     const template = Handlebars.compile(textHBS);

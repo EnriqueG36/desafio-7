@@ -16,8 +16,9 @@ const app = express();                              //Instanciamos el modulo exp
 const httpServer = new HttpServer(app);             //instanciamos el servidor http, pasando por parametro la instancia de express
 const io = new SocketServer(httpServer);            //intanciamos el servidor socket pasando como parametro la intancia http
 
-//Bases de datos
-//const objetoknex = require('../db/config');                            //Importamos nuestro objeto de configuracion Knex
+//Objeto de configuracion Bases de datos
+const dbConfig = require('../db/config.js')         //Importamos nuestro objeto de configuracion Knex
+                           
 
 //Configuración del motor de plantilla para el uso de HANDLEBARS
 app.engine('hbs', engine({
@@ -39,8 +40,10 @@ app.use(express.static("./public"));                //Archivos estaticos
 app.use('/api', apiRoutes);                 //Ruta a routers.js con prefijo /api
 
 //clases importadas
-const ApiProductos = require('./api/apiProductos.js');           //Importamos la clase API
-const apiProductos = new ApiProductos('tablaproductos');              //Nueva instancia de la clase ApiProductos, recibe el nombre de la tabla en la base de datos mariaDB
+const ApiProductos = require('./api/apiProductos.js');          //Importamos la clase ApiProductos
+const apiProductos = new ApiProductos('tablaproductos');        //Nueva instancia de la clase ApiProductos, recibe el nombre de la tabla en la base de datos mariaDB
+const ApiChat = require('./api/apiMensajesChatDB.js');          //Importamos la clase ApiChat
+const apiChat = new ApiChat(dbConfig.sqlite, 'tablaChat')       //Nueva instancia de la clase ApiChat, recibe la configruacion de sqlite y el nombre de la tabla en la base de datos
 
 //Variables y arreglos
 const messages = [];                        //arreglo vacio para ir almacenando en memoria los mensajes del chat
@@ -59,23 +62,27 @@ io.on('connection', (socket)=> {
     console.log(socket.id);                                                     //Muestra por consola el id del nuevo cliente conectado.
     //console.log(messages);
      
-    socket.emit('messages', messages);                                          //
+    //socket.emit('messages', messages);                                          //
+    socket.emit('messages', apiChat.getAll());                                             //Emite un evento llamado messages, manda el resultado de la clase apiChat.getAll para obtener todo el historial de chat
     socket.emit('productos', apiProductos.getAll());                                       //Emite un evento llamado productos, que manda como parametro la lista de productos
     
     //Escucha por los mensajes emitido por el lado del cliente con el metodo on
     socket.on('new-message',data => {
 
-        messages.push(data);
-        io.sockets.emit('messages', messages);
-        fs.writeFileSync("./chat_data_log/chat_log.json", JSON.stringify(messages));        //Escribe el log del chat en un archivo
+        //messages.push(data);
+
+        //io.sockets.emit('messages', messages);
+        io.sockets.emit('messages', apiChat.getAll());
+        //fs.writeFileSync("./chat_data_log/chat_log.json", JSON.stringify(messages));        //Escribe el log del chat en un archivo
+        apiChat.adNew(data);                                                                    //Guarda el nuevo mensaje de chat en la base de datos
 
     });
 
     //Escucha por los cambios en la tabla de productos      
     socket.on('cambio-tabla-productos',data => {
 
-        api.addNew(data);
-        io.sockets.emit('productos', apiProductos.getAll());
+        apiProductos.addNew(data);                                  //Recibe data de un nuevo producto y lo pasa como argumento a la funcion addNew
+        io.sockets.emit('productos', apiProductos.getAll());        //emite a todos los sockets un evento llamado 'productos' y el metodo getAll
         
     });
 

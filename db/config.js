@@ -4,17 +4,18 @@ module.exports = {
     mariaDB: {
         client: 'mysql',
         connection: {
-            host: '',
-            port: ,
-            user: '',
-            password: '',
+            host: '127.0.0.1',
+            port: 3307,
+            user: 'root',
+            password: 'MySQL110',
             database: 'desafio7',
         }
     },
     sqlite: {
         client: 'sqlite3',
         connection: {
-            filename: '../db/sqlite/historialchat.sqlite'
-        }
+            filename: './db/sqlite/historialChat.sqlite'
+        },
+        useNullAsDefault: true,
     }
 }
