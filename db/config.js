@@ -11,7 +11,7 @@ module.exports = {
             database: 'desafio7',
         }
     },
-    sqlite: {
+    sqlite3: {
         client: 'sqlite3',
         connection: {
             filename: './db/sqlite/historialChat.sqlite'
