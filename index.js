@@ -9,6 +9,10 @@ const path = require('path');
 const {engine} = require('express-handlebars');
 const apiRoutes = require('./routers/routers');
 const fs = require("fs");                           //Importamos el modulo file System
+const session = require('express-session');         //Importamos express-session
+const  MongoStore = require('connect-mongo');       //Requerimos el modulo connect-mongo
+
+const users = [...require('./data/users.json')];
 
 //A continuacion la configuración básica de un servidor http con socket en conjunto
 const PORT = process.env.PORT || 8080;              //Configuramos el puerto por la variable de entorno O por el 8080
@@ -35,14 +39,60 @@ app.set('view engine', 'hbs');              //Indicamos a express el motor de pl
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static("./public"));                //Archivos estaticos
+app.use(session({
+    secret: 'firma-secreta-desafio-LogIn',          //Firma para la cookie generada por session
+    resave: false,                                  //Autoguarda cambios en la session
+    saveUninitialized: false,
+    store: MongoStore.create({
+       mongoUrl: 'mongodb+srv://enrique:dbmongo@clustercoder.ijswitn.mongodb.net/DesafioLogin?retryWrites=true&w=majority',
+    }),
+}))
+
+
 
 //Routes
 app.use('/api', apiRoutes);                 //Ruta a routers.js con prefijo /api
+
+app.get('/', (req, res) => {
+    res.send("pantalla de inicio");
+});
+
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    const user = users.find(user => user.email === email);
+    if (!user) return res.redirect('/error');
+    req.session.user = user;
+    req.session.save((err) => {
+      if (err) {
+        console.log("Session error => ", err);
+        return res.redirect('/error');
+      }
+      res.redirect('/profile');
+    })
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //clases importadas
 const ApiProductos = require('./api/apiProductos.js');          //Importamos la clase ApiProductos
 const apiProductos = new ApiProductos('tablaproductos');        //Nueva instancia de la clase ApiProductos, recibe el nombre de la tabla en la base de datos mariaDB
 const ApiChat = require('./api/apiMensajesChatDB.js');          //Importamos la clase ApiChat
+const { Store } = require('express-session');
 const apiChat = new ApiChat(dbConfig.sqlite3, 'tablaChat')       //Nueva instancia de la clase ApiChat, recibe la configruacion de sqlite y el nombre de la tabla en la base de datos
 
 
